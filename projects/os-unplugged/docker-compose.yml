@@ -1,0 +1,36 @@
+version: '3'
+services:
+    # www server that rewrites HTML / JSON according the hostname used to access the service.
+    # Detail:
+    #        > ./www is served
+    #        > localhost may be used for absolute links
+    #            > localhost references will be replaced via the hostname used
+    #              to access the www server.
+    #                > if the server is access via the hostname
+    #                  'hotelcalifornia' those localhost references will be
+    #                   replaced.
+    #                > this is useful as the content can be accessed, say, by a
+    #                  developer's workstation via "localhost" _but_ internal
+    #                  containers such as 'workflow' use the internal name
+    #                  (i.e. defined within this docker-compose.yml file.
+    #
+    # Note: custom network code is only for legacy naming (will be removed)
+    www_rewrite:
+        build: container_www_rewrite/.
+        ports:
+            - "80:80"        
+        volumes:
+        - ./www:/usr/share/nginx/html:ro
+        logging:
+            driver: none
+        networks:
+            default:
+                aliases:
+                - www_rewrite
+                - localhostmet        
+
+    workflow:
+        image: ordnancesurvey/whalebrew-mbgl-offline
+        entrypoint: /mbgl-offline
+        volumes:
+            - ./output:/output
